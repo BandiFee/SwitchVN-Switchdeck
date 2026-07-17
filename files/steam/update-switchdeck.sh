@@ -92,6 +92,12 @@ if [ ! -d "$VK_DIR" ]; then
     echo "VKD3D added successfully."
 fi
 
+# FEX Build migration
+if [ ! -f "$SWITCHDECK_DIR/.fex_update" ]; then
+    echo "Old FEX version detected, updating.."
+    rm -rf "$STEAMROOT/compatibilitytools.d/Proton 11.0-1 Armv8.0 (FEX)"
+fi
+
 # Check if Proton 11 Arm64 is installed
 if [ ! -d "$STEAMROOT/compatibilitytools.d/Proton 11.0-1 Armv8.0 (FEX)" ]; then
     echo "Downloading Proton 11.0-1 Armv8.0 (FEX).."
@@ -101,6 +107,8 @@ if [ ! -d "$STEAMROOT/compatibilitytools.d/Proton 11.0-1 Armv8.0 (FEX)" ]; then
         echo "Extracting files (this may take a moment).."
         tar -xzf "$STEAMROOT/compatibilitytools.d/Proton.11.0-1.Armv8.0.FEX.tar.gz" --directory "$STEAMROOT/compatibilitytools.d"
         rm -f "$STEAMROOT/compatibilitytools.d/Proton.11.0-1.Armv8.0.FEX.tar.gz"
+
+        touch "$SWITCHDECK_DIR/.fex_update"
         echo "Proton 11.0-1 Armv8.0 (FEX) successfully installed."
     else
         echo "Error: Failed to download Proton 11.0-1 Armv8.0 (FEX)."

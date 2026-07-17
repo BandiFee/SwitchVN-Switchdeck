@@ -197,6 +197,7 @@ if [ ! -d "$STEAMROOT/compatibilitytools.d/Proton 11.0-1 Armv8.0 (FEX)" ]; then
         printf "\nExtracting files (this may take a moment)..\n"
         tar -xzf "$STEAMROOT/compatibilitytools.d/Proton.11.0-1.Armv8.0.FEX.tar.gz" --directory "$STEAMROOT/compatibilitytools.d"
         rm -f "$STEAMROOT/compatibilitytools.d/Proton.11.0-1.Armv8.0.FEX.tar.gz"
+        touch "$STEAMROOT/Switchdeck/.fex_update"
         printf "\nProton 11.0-1 Armv8.0 (FEX) successfully installed.\n"
     else
         printf "\nError: Failed to download Proton 11.0-1 Armv8.0 (FEX).\n"
