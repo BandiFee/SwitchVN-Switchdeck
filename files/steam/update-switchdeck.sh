@@ -89,3 +89,21 @@ if [ ! -d "$VK_DIR" ]; then
     
     echo "VKD3D added successfully."
 fi
+
+# Check if Proton 11 Arm64 is installed
+if [ ! -d "$STEAMROOT/compatibilitytools.d/Proton 11.0-1 Armv8.0 (FEX)" ]; then
+    echo "Downloading Proton 11.0-1 Armv8.0 (FEX).."
+    mkdir -p "$STEAMROOT/compatibilitytools.d"
+
+    if wget -q --show-progress -c -t 5 -O "$STEAMROOT/compatibilitytools.d/Proton.11.0-1.Armv8.0.FEX.tar.gz" "https://github.com/SildurFX/Switchdeck-Extras/releases/download/Proton-11.0-1-Armv8.0/Proton.11.0-1.Armv8.0.FEX.tar.gz"; then
+        echo "Extracting files (this may take a moment).."
+        tar -xzf "$STEAMROOT/compatibilitytools.d/Proton.11.0-1.Armv8.0.FEX.tar.gz" --directory "$STEAMROOT/compatibilitytools.d"
+        rm -f "$STEAMROOT/compatibilitytools.d/Proton.11.0-1.Armv8.0.FEX.tar.gz"
+        echo "Proton 11.0-1 Armv8.0 (FEX) successfully installed."
+    else
+        echo "Error: Failed to download Proton 11.0-1 Armv8.0 (FEX)."
+        exit 1
+    fi
+fi
+
+echo "Launching Steam.."
