@@ -36,12 +36,14 @@ if [ "$LATEST_LAUNCH_SHA" != "$(cat "$LAUNCH_SHA_FILE" 2>/dev/null)" ] || [ ! -f
     wget -q --header="Accept: application/vnd.github.v3.raw" -O "$STEAMROOT/launch-steam.sh" "https://api.github.com/repos/SildurFX/Switchdeck/contents/files/steam/launch-steam.sh?ref=main"
     echo "$LATEST_LAUNCH_SHA" > "$LAUNCH_SHA_FILE"
     echo "Updating launch script... You may have to restart Steam to fully apply the update."
+    touch "$SWITCHDECK_DIR/.needs_restart"
     sleep 2
 fi
 if [ "$LATEST_UPDATE_SHA" != "$(cat "$UPDATE_SHA_FILE" 2>/dev/null)" ] || [ ! -f "$STEAMROOT/update-switchdeck.sh" ]; then
     wget -q --header="Accept: application/vnd.github.v3.raw" -O "$STEAMROOT/update-switchdeck.sh" "https://api.github.com/repos/SildurFX/Switchdeck/contents/files/steam/update-switchdeck.sh?ref=main"
     echo "$LATEST_UPDATE_SHA" > "$UPDATE_SHA_FILE"
     echo "Updating update script... You may have to restart Steam to fully apply the update."
+    touch "$SWITCHDECK_DIR/.needs_restart"
     sleep 2
 fi
 
@@ -105,5 +107,3 @@ if [ ! -d "$STEAMROOT/compatibilitytools.d/Proton 11.0-1 Armv8.0 (FEX)" ]; then
         exit 1
     fi
 fi
-
-echo "Launching Steam.."

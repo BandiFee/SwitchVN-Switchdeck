@@ -131,7 +131,7 @@ if [ "$UPDATE_CHECK" = "true" ] && [ ! -t 0 ] && ! pidof steam >/dev/null 2>&1; 
 fi
 
 if [ "$ONLINE" -eq 1 ]; then
-    UPDATE_CMD="source '$STEAMROOT/update-switchdeck.sh'; sleep 1; [[ '$STEAMROOT/launch-steam.sh' -nt '$0' || '$STEAMROOT/update-switchdeck.sh' -nt '$0' ]] && exit 0"
+    UPDATE_CMD="source '$STEAMROOT/update-switchdeck.sh'; sleep 1;"
     if command -v konsole >/dev/null 2>&1; then
         konsole -e bash -c "$UPDATE_CMD"
     elif command -v gnome-terminal >/dev/null 2>&1; then
@@ -142,8 +142,9 @@ if [ "$ONLINE" -eq 1 ]; then
     touch "$SWITCHDECK_DIR/.update.lock"
 fi
 
-if [[ "$STEAMROOT/launch-steam.sh" -nt "$0" ]] || [[ "$STEAMROOT/update-switchdeck.sh" -nt "$0" ]]; then
-    exec "$0" "$@"
+if [ -f "$SWITCHDECK_DIR/.needs_restart" ]; then
+    rm -f "$SWITCHDECK_DIR/.needs_restart"
+    exec "$STEAMROOT/launch-steam.sh" "$@"
 fi
 
 # symlink folder '0' to /dev/null to stop proton initialization on every launch
