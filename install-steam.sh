@@ -30,7 +30,7 @@ DESKTOP_DIR=$(xdg-user-dir DESKTOP 2>/dev/null || echo "$HOME/Desktop")
 # Uninstall conflicting packages and run Ubuntu specific setup
 if command -v apt-get &>/dev/null; then
     dpkg -l | grep -q "^ii  steam-launcher " && {
-    printf "Found conflicting system steam package. Uninstalling..\n"
+    printf "\nFound conflicting system steam package. Uninstalling..\n"
     sudo apt-get remove -y steam-launcher
 } || true
 
@@ -45,9 +45,9 @@ Signed-By: /usr/share/keyrings/box64-archive-keyring.gpg" | sudo tee /etc/apt/so
     sudo apt-get update -y
     sudo apt-get install -y box64-tegrax1
     sudo systemctl restart systemd-binfmt || true
-    printf "Box64 installation complete.\n"
+    printf "\nBox64 installation complete.\n"
 else
-    printf "Box64 is already installed. Skipping installation.\n"
+    printf "\nBox64 is already installed. Skipping installation.\n"
 fi
 
 # check and update GPU drivers to support vulkan 1.2
@@ -57,22 +57,22 @@ if [ ! -f /etc/apt/sources.list.d/theofficialgman-L4T-32-7.list ]; then
     sudo rm -f /etc/apt/preferences.d/00-switch-bsp-restrictions
     sudo apt-get update -y
     sudo apt install -y -o Dpkg::Options::="--force-confdef" nvidia-bsp-32-7
-    printf "GPU Drivers successfully upgraded. It is recommended to restart your system.\n"
+    printf "\nGPU Drivers successfully upgraded. It is recommended to restart your system.\n"
     sleep 2
 else
-    printf "Latest GPU driver is already installed. Skipping installation.\n"
+    printf "\nLatest GPU driver is already installed. Skipping installation.\n"
 fi   
 
 # fedora
 elif command -v dnf &>/dev/null; then
     (rpm -q steam || rpm -q steam-launcher) &>/dev/null && {
-        printf "Found conflicting system steam package. Uninstalling..\n"
+        printf "\nFound conflicting system steam package. Uninstalling..\n"
         sudo dnf remove -y steam steam-launcher
     } || true
 # arch
 elif command -v pacman &>/dev/null; then
     pacman -Qq steam &>/dev/null && {
-        printf "Found conflicting system steam package. Uninstalling..\n"
+        printf "\nFound conflicting system steam package. Uninstalling..\n"
         sudo pacman -Rns --noconfirm steam
     } || true
 fi
@@ -238,6 +238,24 @@ if [ "$CONTROLLER_RELOAD" -eq 1 ]; then
     printf "\nController permissions applied successfully.\n"
 fi
 
+# Setup password rule for SD_SWAP and SD_ZRAM and optimize ZRAM config
+SUDOERS_FILE="/etc/sudoers.d/switchdeck"
+if [ ! -f "$SUDOERS_FILE" ]; then
+    printf "\nSetting up permissions for SD_SWAP and SD_ZRAM.. (Requires sudo)\n"
+    CURRENT_USER=$(whoami)
+    RULE_LINE="$CURRENT_USER ALL=(ALL) NOPASSWD: /usr/sbin/swapon, /usr/sbin/swapoff, /usr/sbin/zramctl, /usr/bin/dd, /usr/bin/chmod, /usr/sbin/mkswap"
+    if ! sudo sh -c "echo \"$RULE_LINE\" > \"$SUDOERS_FILE\" && chown root:root \"$SUDOERS_FILE\" && chmod 0440 \"$SUDOERS_FILE\""; then
+        printf "\nFailed to set up permissions for SD_SWAP and SD_ZRAM.\n"
+    fi
+    printf "\nOptimizing ZRAM Config.. (Requires sudo)\n"
+    sudo mkdir -p /etc/sysctl.d
+    sudo tee /etc/sysctl.d/99-zram.conf << 'EOF' >/dev/null
+vm.swappiness=100
+vm.page-cluster=0
+EOF
+    sudo sysctl --system >/dev/null 2>&1
+fi
+
 if [ -x "$RTARM64ROOT/steam" ]; then
     printf "\nStarting Steam (Initial Update phase)..\n"
     export LD_LIBRARY_PATH="$RTARM64ROOT:${LD_LIBRARY_PATH-}"
@@ -278,9 +296,6 @@ if [ -x "$RTARM64ROOT/steam" ]; then
 
     # Overkill but make sure everything is executable
 	chmod -R +x "$STEAMROOT"
-
-    # don't trigger old version migration on a fresh install
-    touch "$STEAMROOT/Switchdeck/.migration"
 
     # Setup
 	ln -fsn "$STEAMROOT" "$STEAMHOME/root"

@@ -12,18 +12,6 @@ echo "Checking for Switchdeck updates.."
 STEAMROOT="$HOME/.local/share/Steam"
 SWITCHDECK_DIR="$HOME/.local/share/Steam/Switchdeck"
 
-# Migration
-MIGRATION_FLAG="$SWITCHDECK_DIR/.migration"
-if [ ! -f "$MIGRATION_FLAG" ]; then
-    echo "Migrating to new Switchdeck version.."
-    if wget -q --show-progress -c -t 5 -O "$STEAMROOT/linux_x86_64.zip" "https://github.com/SildurFX/Switchdeck/raw/refs/heads/main/files/downgrade/linux_x86_64.zip"; then
-        unzip -q -o "$STEAMROOT/linux_x86_64.zip" -d "$STEAMROOT"
-        rm -f "$STEAMROOT/linux_x86_64.zip"
-        touch "$MIGRATION_FLAG"
-        echo "Migration applied successfully."
-    fi
-fi
-
 # Check for Switchdeck updates
 LAUNCH_SHA_FILE="$SWITCHDECK_DIR/launch-steam.sha"
 UPDATE_SHA_FILE="$SWITCHDECK_DIR/update-switchdeck.sha"
@@ -114,4 +102,22 @@ if [ ! -d "$STEAMROOT/compatibilitytools.d/Proton 11.0-1 Armv8.0 (FEX)" ]; then
         echo "Error: Failed to download Proton 11.0-1 Armv8.0 (FEX)."
         exit 1
     fi
+fi
+
+# Setup password rule for SD_SWAP and SD_ZRAM and optimize ZRAM config
+SUDOERS_FILE="/etc/sudoers.d/switchdeck"
+if [ ! -f "$SUDOERS_FILE" ]; then
+    echo "Setting up permissions for SD_SWAP and SD_ZRAM.. (Requires sudo)"
+    CURRENT_USER=$(whoami)
+    RULE_LINE="$CURRENT_USER ALL=(ALL) NOPASSWD: /usr/sbin/swapon, /usr/sbin/swapoff, /usr/sbin/zramctl, /usr/bin/dd, /usr/bin/chmod, /usr/sbin/mkswap"
+    if ! sudo sh -c "echo \"$RULE_LINE\" > \"$SUDOERS_FILE\" && chown root:root \"$SUDOERS_FILE\" && chmod 0440 \"$SUDOERS_FILE\""; then
+        echo "Failed to set up permissions for SD_SWAP and SD_ZRAM."
+    fi
+    echo "Optimizing ZRAM Config.. (Requires sudo)"
+    sudo mkdir -p /etc/sysctl.d
+    sudo tee /etc/sysctl.d/99-zram.conf << 'EOF' >/dev/null
+vm.swappiness=100
+vm.page-cluster=0
+EOF
+    sudo sysctl --system >/dev/null 2>&1
 fi

@@ -22,8 +22,8 @@
 ########################################################################################################################################
 
 # Switchdeck:
-SD_GAMEMODE="true"                      # Toggle switchdeck gamemode.
 UPDATE_CHECK="true"                     # Toggle switchdeck update check on launch.
+ENABLE_GAMEMODE="true"                  # Toggle switchdeck gamemode.
 STEAMDECK_MODE="false"                  # Toggle steamdeck / big picture mode for steam.
 
 # Proton:
@@ -235,7 +235,7 @@ find "$STEAMROOT/steamapps/common" "$STEAMROOT/compatibilitytools.d" -maxdepth 1
 done
 
 # Switchdeck Gamemode
-if [ "$SD_GAMEMODE" = "true" ]; then
+if [ "$ENABLE_GAMEMODE" = "true" ]; then
     # Preparation & Crash Recovery
     [ ! -f "$CEF_DUMMY" ] && printf "#!/bin/bash\n# Gamemode Dummy\nsleep infinity\n" > "$CEF_DUMMY" && chmod +x "$CEF_DUMMY"
     [ -f "${CEF_PATH}.bak" ] && { [ $(stat -c%s "$CEF_PATH" 2>/dev/null || echo 0) -lt 100 ] || [ -f "/tmp/cef_swapped.lock" ]; } && mv -f "${CEF_PATH}.bak" "$CEF_PATH" && chmod +x "$CEF_PATH" && rm -f "/tmp/cef_swapped.lock"
@@ -254,7 +254,7 @@ if [ "$SD_GAMEMODE" = "true" ]; then
         # Scan /proc to find active gamemode PID
         find_gamemode_pid() {
             for p in /proc/[0-9]*; do
-                [ -r "$p/environ" ] && grep -zq "^SWITCHDECK_GAMEMODE=" "$p/environ" 2>/dev/null && echo "${p##*/}" && return 0
+                [ -r "$p/environ" ] && grep -zqE "^(SWITCHDECK_GAMEMODE|SD_GAMEMODE)=" "$p/environ" 2>/dev/null && echo "${p##*/}" && return 0
             done
             return 1
         }
@@ -284,7 +284,38 @@ if [ "$SD_GAMEMODE" = "true" ]; then
                 [ -z "$GAME_PID" ] && { sleep 15; continue; }
                 
                 # Detect mode 1 or 2 from application context
-                grep -zq "^SWITCHDECK_GAMEMODE=2" "/proc/$GAME_PID/environ" 2>/dev/null && FLAG=2 || FLAG=1
+                grep -zqE "^(SWITCHDECK_GAMEMODE|SD_GAMEMODE)=2" "/proc/$GAME_PID/environ" 2>/dev/null && FLAG=2 || FLAG=1
+
+                # Setup SD_SWAP AND SD_ZRAM
+                RUN_ZRAM=0
+                RUN_SWAP=0
+                grep -zq "^SD_ZRAM=" "/proc/$GAME_PID/environ" 2>/dev/null && RUN_ZRAM=1
+                grep -zq "^SD_SWAP=1" "/proc/$GAME_PID/environ" 2>/dev/null && RUN_SWAP=1
+
+                if [ "$RUN_ZRAM" -eq 1 ]; then
+                    ZRAM_SIZE="1G"
+                    if grep -zq "^SD_ZRAM=2" "/proc/$GAME_PID/environ" 2>/dev/null; then
+                        ZRAM_SIZE="2G"
+                    fi
+                    # Force allocate /dev/zram1 directly since it's always the target slot
+                    sudo /usr/sbin/zramctl --find --algorithm lz4 --size "$ZRAM_SIZE" >/dev/null 2>&1
+                    sudo /usr/sbin/mkswap /dev/zram1 >/dev/null 2>&1
+                    sudo /usr/sbin/swapon --priority 5 /dev/zram1 2>/dev/null
+                fi
+                if [ "$RUN_SWAP" -eq 1 ]; then
+                    if [ ! -f "/swapfile" ]; then
+                        (
+                            sudo dd if=/dev/zero of=/swapfile bs=1M count=4096 status=none
+                            sudo chmod 600 /swapfile
+                            sudo mkswap /swapfile >/dev/null 2>&1
+                            # Only mount if the file was successfully generated
+                            [ -f "/swapfile" ] && sudo /usr/sbin/swapon --priority 1 /swapfile 2>/dev/null
+                        ) &
+                    else
+                        # If it already exists, mount instantly
+                        sudo /usr/sbin/swapon --priority 1 /swapfile 2>/dev/null
+                    fi
+                fi
 
                 # Replace with placeholder dummy
                 if [ $(stat -c%s "$CEF_PATH" 2>/dev/null || echo 0) -gt 100 ]; then
@@ -301,6 +332,15 @@ if [ "$SD_GAMEMODE" = "true" ]; then
                 # Wait directly for target process to close
                 while [ -d "/proc/$GAME_PID" ]; do sleep 5; done
                 sleep 2
+
+                # Revert ZRAM and SWAP config once the game exits
+                if [ "$RUN_ZRAM" -eq 1 ]; then
+                    sudo /usr/sbin/swapoff /dev/zram1 2>/dev/null
+                    sudo /usr/sbin/zramctl --reset /dev/zram1 2>/dev/null
+                fi
+                if [ "$RUN_SWAP" -eq 1 ]; then
+                    sudo /usr/sbin/swapoff /swapfile 2>/dev/null
+                fi
 
                 # Revert
                 if [ -f "/tmp/cef_swapped.lock" ] && [ -f "${CEF_PATH}.bak" ] && [ $(stat -c%s "${CEF_PATH}.bak" 2>/dev/null || echo 0) -gt 100 ]; then
