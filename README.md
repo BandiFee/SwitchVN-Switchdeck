@@ -30,7 +30,9 @@
 ---
 
 ## Features
-* `SWITCHDECK_GAMEMODE=1 or 2 %command%`. Launching Steam games with this command **frees up over 1GB of RAM**. In **Mode 1** it unloads steamwebhelper on game launch and restores it on exit, online multiplayer is still supported in this mode. In **Mode 2** it also stops KDE Plasma & background services. Restoring Steam or KDE after game exit is gonna take a few seconds.
+* `SD_GAMEMODE=1 or 2 %command%` Games launched with this command unload the steamwebhelper to **free up over 1GB of RAM.** In mode 2 it also unloads KDE services including Network services. Restoring Steam or KDE after game exit is gonna take a few seconds.
+* `SD_SWAP=1 %command%` Adds 4GB of Swap for the current game and disables it on exit. Required for some games that run out of RAM.
+* `SD_ZRAM=1 or 2 %command%` Adds 1GB or 2GB of extra ZRAM for the current game and disables it on exit. Provides better stability for games close to the RAM limit.
 * [DXVK-Sarek](https://github.com/pythonlover02/DXVK-Sarek) Patch for Steam Proton and [GE-Proton](https://github.com/gloriouseggroll/proton-ge-custom).
 * [VKD3D v2.3.1](https://github.com/HansKristian-Work/vkd3d-proton/releases/tag/v2.3.1) Patch for Steam Proton and [GE-Proton](https://github.com/gloriouseggroll/proton-ge-custom).
 * Vulkan extension patch for Proton and [GE-Proton](https://github.com/gloriouseggroll/proton-ge-custom) to fix Vertex explosions in 32-bit games. (Caused by broken Nvidia Drivers.)
