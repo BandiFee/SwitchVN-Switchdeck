@@ -253,7 +253,7 @@ if [ ! -f "$SUDOERS_FILE" ]; then
 vm.swappiness=100
 vm.page-cluster=0
 EOF
-    sudo sysctl --system >/dev/null 2>&1
+    sudo sysctl --system >/dev/null 2>&1 || true
 fi
 
 if [ -x "$RTARM64ROOT/steam" ]; then
