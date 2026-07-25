@@ -146,9 +146,11 @@ if [ ! -x "$RTARM64ROOT" ]; then
 fi
 
 if [ ! -x "$RTARM64ROOT/pv-runtime/steam-runtime-steamrt-arm64" ]; then
-	printf "\nDownloading steam-runtime..\n"
+	printf "\nFetching current Steam runtime version..\n"
+    VERSION=$(wget -qO- "https://repo.steampowered.com/steamrt3c/images/latest-public-beta.txt" | tr -d '[:space:]') && [ -n "$VERSION" ] || exit_on_error "failed to retrieve the version number from Steam repository"
+	printf "\nDownloading steam-runtime version %s..\n" "$VERSION"
 	mkdir -p "$RTARM64ROOT/pv-runtime"
-	wget -q --show-progress -c -t 5 -O "$RTARM64ROOT/pv-runtime/steam-runtime-steamrt-arm64.tar.xz" "https://repo.steampowered.com/steamrt3c/images/latest-public-beta/steam-runtime-steamrt-arm64.tar.xz" || exit_on_error "steam runtime download failed (check your internet connection)"
+	wget -q --show-progress -c -t 5 -O "$RTARM64ROOT/pv-runtime/steam-runtime-steamrt-arm64.tar.xz" "https://repo.steampowered.com/steamrt3c/images/${VERSION}/steam-runtime-steamrt-arm64.tar.xz" || exit_on_error "steam runtime download failed (check your internet connection)"
 	tar -xf "$RTARM64ROOT/pv-runtime/steam-runtime-steamrt-arm64.tar.xz" --directory "$RTARM64ROOT/pv-runtime" --checkpoint=200 --checkpoint-action=dot
 	rm -rf "$RTARM64ROOT/pv-runtime/steam-runtime-steamrt-arm64.tar.xz"
 fi
@@ -278,6 +280,11 @@ if [ -x "$RTARM64ROOT/steam" ]; then
         unzip -q -o "$TEMP_SD/files/downgrade/linux_x86_64.zip" -d "$STEAMROOT"
     fi
 
+    if [ -f "$TEMP_SD/files/downgrade/steamui_websrc_all.zip" ]; then
+        # Extract only the main folder entry
+        unzip -q -o "$TEMP_SD/files/downgrade/steamui_websrc_all.zip" "steamui/*" -d "$STEAMROOT"
+    fi
+    
     # Reassemble and extract steamrtarm64
     if [ -f "$TEMP_SD/files/downgrade/steamrtarm64.tar.gz.partaa" ]; then
         mkdir -p "$STEAMROOT/steamrtarm64"
