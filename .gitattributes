@@ -1,5 +1,6 @@
 * text eol=lf
 
-# don't break archive parts
+# don't break archives
 *.part* binary
 *.zip binary
+*.tar.gz binary

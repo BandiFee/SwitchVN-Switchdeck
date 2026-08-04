@@ -155,26 +155,6 @@ if [ ! -x "$RTARM64ROOT/pv-runtime/steam-runtime-steamrt-arm64" ]; then
 	rm -rf "$RTARM64ROOT/pv-runtime/steam-runtime-steamrt-arm64.tar.xz"
 fi
 
-if [ ! -d "$STEAMROOT/Switchdeck/DXVK" ]; then
-    printf "\nDownloading DXVK-Sarek..\n"
-    mkdir -p "$STEAMROOT/Switchdeck/DXVK"
-
-    LATEST_JSON=$(wget -qO- "https://api.github.com/repos/pythonlover02/DXVK-Sarek/releases/latest")
-    DXVK_URL=$(echo "$LATEST_JSON" | sed -n 's/.*"browser_download_url": "\([^"]*\)".*/\1/p' | head -1)
-    DXVK_TAG=$(echo "$LATEST_JSON" | sed -n 's/.*"tag_name": "\([^"]*\)".*/\1/p' | head -1)
-    
-    # protection fallback
-    [ -z "$DXVK_URL" ] && { printf "\nError: GitHub API URL empty. Aborting installation.\n"; exit 1; }
-
-    wget -q --show-progress -c -t 5 -O "$STEAMROOT/Switchdeck/DXVK/dxvk-sarek.tar.gz" "$DXVK_URL"
-    tar -xzf "$STEAMROOT/Switchdeck/DXVK/dxvk-sarek.tar.gz" --directory "$STEAMROOT/Switchdeck/DXVK" --strip-components=1
-    rm -f "$STEAMROOT/Switchdeck/DXVK/dxvk-sarek.tar.gz"
-    
-    # Save version tag so the update script knows what's installed
-    echo "$DXVK_TAG" > "$STEAMROOT/Switchdeck/dxvk-sarek_version.txt"
-    printf "\nDXVK-Sarek installed successfully in Switchdeck/DXVK.\n"
-fi
-
 if [ ! -d "$STEAMROOT/Switchdeck/VKD3D" ]; then
     printf "\nDownloading VKD3D-Proton 2.3.1..\n"
     mkdir -p "$STEAMROOT/Switchdeck/VKD3D"
@@ -189,22 +169,6 @@ if [ ! -d "$STEAMROOT/Switchdeck/VKD3D" ]; then
     rm -f "$STEAMROOT/Switchdeck/VKD3D/vkd3d.tar.zst"
     
     printf "\nVKD3D installed successfully in Switchdeck/VKD3D.\n"
-fi
-
-if [ ! -d "$STEAMROOT/compatibilitytools.d/Proton 11.0-1 Armv8.0 (FEX)" ]; then
-    printf "\nDownloading Proton 11.0-1 Armv8.0 (FEX)..\n"
-    mkdir -p "$STEAMROOT/compatibilitytools.d"
-
-    if wget -q --show-progress -c -t 5 -O "$STEAMROOT/compatibilitytools.d/Proton.11.0-1.Armv8.0.FEX.tar.gz" "https://github.com/SildurFX/Switchdeck-Extras/releases/download/Proton-11.0-1-Armv8.0/Proton.11.0-1.Armv8.0.FEX.tar.gz"; then
-        printf "\nExtracting files (this may take a moment)..\n"
-        tar -xzf "$STEAMROOT/compatibilitytools.d/Proton.11.0-1.Armv8.0.FEX.tar.gz" --directory "$STEAMROOT/compatibilitytools.d"
-        rm -f "$STEAMROOT/compatibilitytools.d/Proton.11.0-1.Armv8.0.FEX.tar.gz"
-        touch "$STEAMROOT/Switchdeck/.fex_update"
-        printf "\nProton 11.0-1 Armv8.0 (FEX) successfully installed.\n"
-    else
-        printf "\nError: Failed to download Proton 11.0-1 Armv8.0 (FEX).\n"
-        exit 1
-    fi
 fi
 
 # Fix controller permissions
@@ -269,7 +233,7 @@ if [ -x "$RTARM64ROOT/steam" ]; then
     TEMP_SD="$STEAMROOT/temp_sd"
     mkdir -p "$TEMP_SD"
 
-	wget -q -t 5 -O- "https://github.com/SildurFX/Switchdeck/archive/refs/heads/main.tar.gz" | tar xz -C "$TEMP_SD" --strip-components=1 || exit_on_error "Failed to download/extract downgrade files"
+	wget -q -t 5 -O- "https://github.com/BandiFee/SwitchVN-Switchdeck/archive/refs/heads/main.tar.gz" | tar xz -C "$TEMP_SD" --strip-components=1 || exit_on_error "Failed to download/extract downgrade files"
 
     if [ -f "$TEMP_SD/files/downgrade/linuxarm64.tar.gz" ]; then
         mkdir -p "$STEAMROOT/linuxarm64"

@@ -13,11 +13,11 @@
 1. Download and run `install-steam.sh` in your **terminal**.
 2. Use the shortcut or `launch-steam.sh` in your Steam folder to launch Steam. On first launch a popup will appear and install steam runtime 4.0 arm64.
 3. In Steam go to **Settings** -> **Library** and turn on: Low Bandwidth, Low Performance and Disable Community Content.
-4. Go to **Settings** -> **Compatibility** and select Proton Experimental or Proton 11.0-1 Armv8.0 (FEX). **FEX does not support 32-bit games** because of severe graphical bugs.
+4. Go to **Settings** -> **Compatibility** and select Proton Experimental.
 5. Go to **Settings** -> **Controller:** -> **Show Advanced Settings:** Enable "Combine Joycon Pairs" and Enable Steam Input for Pro and Generic Controller. ([Capture Button](https://wiki.switchroot.org/wiki/~gitbook/image?url=https%3A%2F%2F1282083284-files.gitbook.io%2F%7E%2Ffiles%2Fv0%2Fb%2Fgitbook-x-prod.appspot.com%2Fo%2Fspaces%252F5A2PNyzG80QTDoltbtvZ%252Fuploads%252Fgit-blob-3f3536275b42d0474793e7cf4be05e666d5c8394%252Fjoycon_mapping.png%3Falt%3Dmedia&width=768&dpr=3&quality=100&sign=2c313375&sv=2) below D-Pad switches from Desktop Mode to Controller)
-6. Restart Steam to apply the [DXVK-Sarek](https://github.com/pythonlover02/DXVK-Sarek), [VKD3D](https://github.com/HansKristian-Work/vkd3d-proton/releases/tag/v2.3.1) and Vertex Explosion patch to Proton.
+6. Restart Steam to apply the [DXVK-Sarek](https://github.com/BandiFee/SwitchVN-DXVK-Sarek), [VKD3D](https://github.com/HansKristian-Work/vkd3d-proton/releases/tag/v2.3.1) and Vertex Explosion patch to Proton.
 
-**Note:** If Steam updates your Proton version you have to relaunch it to reapply the [DXVK-Sarek,](https://github.com/pythonlover02/DXVK-Sarek) [VKD3D](https://github.com/HansKristian-Work/vkd3d-proton/releases/tag/v2.3.1) and Vertex Explosion patch. It's applied on launch.
+**Note:** If Steam updates your Proton version you have to relaunch it to reapply the [DXVK-Sarek,](https://github.com/BandiFee/SwitchVN-DXVK-Sarek) [VKD3D](https://github.com/HansKristian-Work/vkd3d-proton/releases/tag/v2.3.1) and Vertex Explosion patch. It's applied on launch.
 
 ---
 
@@ -33,7 +33,7 @@
 * `SD_GAMEMODE=1 or 2 %command%` Games launched with this command unload the steamwebhelper to **free up over 1GB of RAM.** In mode 2 it also unloads KDE services including Network services. Restoring Steam or KDE after game exit is gonna take a few seconds.
 * `SD_SWAP=1 %command%` Adds 4GB of Swap for the current game and disables it on exit. Required for some games that run out of RAM.
 * `SD_ZRAM=1 or 2 %command%` Adds 1GB or 2GB of extra ZRAM for the current game and disables it on exit. Provides better stability for games close to the RAM limit.
-* [DXVK-Sarek](https://github.com/pythonlover02/DXVK-Sarek) Patch for Steam Proton and [GE-Proton](https://github.com/gloriouseggroll/proton-ge-custom).
+* [DXVK-Sarek](https://github.com/BandiFee/SwitchVN-DXVK-Sarek) Patch for Steam Proton and [GE-Proton](https://github.com/gloriouseggroll/proton-ge-custom).
 * [VKD3D v2.3.1](https://github.com/HansKristian-Work/vkd3d-proton/releases/tag/v2.3.1) Patch for Steam Proton and [GE-Proton](https://github.com/gloriouseggroll/proton-ge-custom).
 * Vulkan extension patch for Proton and [GE-Proton](https://github.com/gloriouseggroll/proton-ge-custom) to fix Vertex explosions in 32-bit games. (Caused by broken Nvidia Drivers.)
 * KDE Context Menu: Add to Steam, to easily import non-Steam games.
@@ -47,12 +47,11 @@
 * `wineesync` causes crashes with DXVK and is disabled in `launch-steam.sh`.
 * [Proton-CachyOS](https://github.com/CachyOS/proton-cachyos/releases), [GE-Proton](https://github.com/gloriouseggroll/proton-ge-custom) and [Luxtorpeda](https://luxtorpeda.org/) are supported. Some games may only work with [GE-Proton](https://github.com/gloriouseggroll/proton-ge-custom).
 * [ProtonPlus](https://github.com/Vysp3r/ProtonPlus) can be used to install custom Proton versions. You can download and install the latest aarch64 release [here](https://github.com/Vysp3r/ProtonPlus/actions/workflows/main.yml). Only x86_64 Proton is supported, don't use aarch64/arm64 versions of Proton.
-* FEX currently does not support 32-bit games because of severe graphical bugs. Use non-FEX Proton versions like Experimental for 32-bit games.
 
 ---
 
 ## Explanation
-This script automates the download and installation of Steam ARM64. Because Steam client builds newer than April 15th, 2026, cause "illegal instruction" crashes on the Nintendo Switch, the script automatically downgrades specific parts of Steam to that version. The L4T kernel (4.9) is technically too old to support FEX-Emu but a WIP Proton FEX build for Armv8.0 is available [here](https://github.com/SildurFX/Switchdeck-Extras/releases/tag/Proton-11.0-1-Armv8.0). This setup also establishes an alternative x86_64 environment powered by Box64 to run x86_64 Proton builds. It applies custom compatibility patches to both native Proton and GE-Proton to ensure Vulkan 1.2 support and to disable a broken Vulkan extension, directly resolving vertex explosion bugs in 32-bit games on the Tegra X1.
+This script automates the download and installation of Steam ARM64. Because Steam client builds newer than April 15th, 2026, cause "illegal instruction" crashes on the Nintendo Switch, the script automatically downgrades specific parts of Steam to that version. The L4T kernel (4.9) is technically too old to support FEX-Emu, so an x86_64 environment powered by Box64 runs x86_64 Proton builds instead. It applies custom compatibility patches to both native Proton and GE-Proton to ensure Vulkan 1.2 support and to disable a broken Vulkan extension, directly resolving vertex explosion bugs in 32-bit games on the Tegra X1.
 
 *Credits to Ivy for the original steam-arm64 download script*
 
