@@ -36,14 +36,18 @@ if command -v apt-get &>/dev/null; then
 
 # check and install box64
 if ! command -v box64 &>/dev/null; then
-    printf "\nBox64 not found. Installing Box64 from Pi-Apps repository...\n"
-    wget -qO- "https://pi-apps-coders.github.io/box64-debs/KEY.gpg" | sudo gpg --dearmor -o /usr/share/keyrings/box64-archive-keyring.gpg
-    echo "Types: deb
-URIs: https://Pi-Apps-Coders.github.io/box64-debs/debian
-Suites: ./
-Signed-By: /usr/share/keyrings/box64-archive-keyring.gpg" | sudo tee /etc/apt/sources.list.d/box64.sources >/dev/null
-    sudo apt-get update -y
-    sudo apt-get install -y box64-tegrax1
+    printf "\nBox64 not found. Installing the SwitchVN Box64 build...\n"
+    # Not Pi-Apps' box64-tegrax1: SwitchVN's build carries the ffmpeg8 native
+    # wrapper, which is what puts the ARM FFmpeg in front of the emulated x86
+    # one. Without it hardware video decoding cannot work no matter what else
+    # is installed. install-switchvn.sh later replaces this with the exact
+    # build its lock pins.
+    BOX64_DEB="$(mktemp -d)/switchvn-box64.deb"
+    wget -q --show-progress -c -t 5 -O "$BOX64_DEB" \
+        "https://github.com/BandiFee/SwitchVN-Box64/releases/latest/download/switchvn-box64.deb" \
+        || exit_on_error "Box64 download failed (check your internet connection)"
+    sudo dpkg -i "$BOX64_DEB" || exit_on_error "Box64 installation failed"
+    rm -f "$BOX64_DEB"
     sudo systemctl restart systemd-binfmt || true
     printf "\nBox64 installation complete.\n"
 else
